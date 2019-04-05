@@ -3,6 +3,29 @@ import background,constInfo,miniMap,uiminimap,wndMgr,math,uiCommon,grp
 import event,game,os
 from m2kmod.Modules import m2k_lib
 
+""" Call function with agrs and delay """
+class CallFnc:
+
+	def __init__(self, time, fnc, *args):
+		self.event = fnc
+		self.eventArgs = args
+		self.state = False
+		self.timer = WaitingDialog()
+		self.timer.Open(time)
+		self.timer.SAFE_SetTimeOverEvent(self.startEvent)
+	
+	def close(self):
+		self.state = True
+		self.timer.Close()
+		
+	def startEvent(self):
+		if self.event != None:
+			if self.eventArgs != None:
+				self.event(*self.eventArgs)
+			else:
+				self.event()
+		self.close()
+
 class LevelbotDialog(ui.ScriptWindow): 				
 	
 	ActiveSkillList = []
@@ -27,7 +50,7 @@ class LevelbotDialog(ui.ScriptWindow):
 		self.RedLabel = self.comp.TextLine(self.Board, '90 %', 250, 38, self.comp.RGB(255, 255, 255))
 		self.BlueLabel = self.comp.TextLine(self.Board, '30 %', 250, 78, self.comp.RGB(255, 255, 255))
 		self.TapfiLabel = self.comp.TextLine(self.Board, '20 Sec.', 250, 118, self.comp.RGB(255, 255, 255))
-		self.MonsterButton, self.MonstersLabel = self.comp.EditLine(self.Board, 'WE CAN PRETEND: ', 15, 240, 250,15,100)
+		self.MonsterButton, self.MonstersLabel = self.comp.EditLine(self.Board, 'Monster;Hue;Game;Haha', 15, 240, 250,15,100)
 
 		self.CloseButton = self.comp.Button(self.Board, '', 'Close', 270, 8, self.Hide_UI, 'd:/ymir work/ui/public/close_button_01.sub', 'd:/ymir work/ui/public/close_button_02.sub', 'd:/ymir work/ui/public/close_button_03.sub')
 		self.ImageRed = self.comp.ExpandedImage(self.Board, 19, 30, str("icon/item/27003.tga"))
@@ -106,11 +129,174 @@ class LevelbotDialog(ui.ScriptWindow):
 		self.LoadSkill()
 	
 		#---New Functions---#
-	def ReadMonsters(self,monstersArray):
-		monstersArray.split(';')
-		for x in monstersArray:
-			chat.AppendChat(7,monstersArray)
-			chat.AppendChat(7, 'Breakpoint6442')
+	def ReadMonsters(self,monstersArrayM):
+		chat.AppendChat(7, monstersArrayM)
+		monstersArray = str(monstersArrayM).split(';')
+		# for monster in monstersArray:
+		# 	chat.AppendChat(7, monster)
+		return monstersArray
+
+	### Call function with delay and args ###
+	callFncList = []
+	
+	def callFnc(self,delay, fnc, *args):
+		self.callFncList = [x for x in self.callFncList if not x.state]
+		self.callFncList.append(self.CallFnc(delay, fnc, *args))
+
+	### Char move to position ###
+	charIsMoving = [False]
+	getStuckedCounter = 0
+	
+	def charMoveToPos(self,vid):
+		chat.AppendChat(7, "charMoveToPos Call")
+		if player.GetCharacterDistance(vid) > 4000:
+			self.getStuckedCounter += 1
+		
+		if not self.charIsMoving[0] and self.getStuckedCounter > 3:
+			self.charIsMoving[0] = True
+			self.getStuckedCounter = 0
+			self.charMoveRandom()
+			self.callFnc(2, lambda : self.charIsMoving.__setitem__(0,False))
+		else:
+			x, y = chr.GetPixelPosition(vid)[:2]
+			myX, myY = player.GetMainCharacterPosition()[:2]
+			
+			if myX < x:
+				x -= 135
+			else:
+				x += 135
+			if myY < y:
+				y -= 135
+			else:
+				y += 135
+		
+			chr.MoveToDestPosition(player.GetMainCharacterIndex(), x, y)
+		
+	### Char move random direction ###
+	
+	def charMoveRandom(self):
+		chat.AppendChat(7, "charMoveRandom Call")
+		x, y = (0, 0)
+		myX, myY = player.GetMainCharacterPosition()[:2]
+		
+		direction = app.GetRandom(1,4)
+		if direction == 1:
+			x = myX
+			y = myY - 1000
+		elif direction == 2:
+			x = myX + 1000
+			y = myY
+		elif direction == 3:
+			x = myX
+			y = myY + 1000
+		elif direction == 4:
+			x = myX - 1000
+			y = myY
+		
+		chr.MoveToDestPosition(player.GetMainCharacterIndex(), x, y)
+	
+	### Get degree in between char and target ###
+	
+	def getDegree(self,vid):
+		chat.AppendChat(7, "getDegree call")
+		mobX, mobY = chr.GetPixelPosition(vid)[:2]
+		playerX, playerY = player.GetMainCharacterPosition()[:2]
+		try:
+			rada = 180 * (math.acos((mobY-playerY)/math.sqrt((mobX - playerX)**2 + (mobY - playerY)**2))) / math.pi + 180
+			if playerX >= mobX:
+				rada = 360 - rada
+		except:
+			rada = 0
+		return rada
+	
+	### Check if target is alive ###
+	
+	def isAliveFunc(self,vid):
+		chat.AppendChat(7, "isAlive Call")
+		player.SetTarget(vid)
+		if player.GetTargetVID() != 0:
+			return True
+	
+	### Find the vid range with the most enemys ###
+	
+	def setVidRange(self,type):
+		chat.AppendChat(7, 'entrou no setVIDrange')
+		start = 0
+		end = 1000
+		limit = 1000
+		range = 50000
+		minVid = 0
+		maxVid = 0
+		vidList = []
+		
+		for i in xrange(limit):
+			for j in xrange(start, end):
+				for k in type:
+					if chr.GetNameByVID(j).lower() == k.lower():
+						vidList.append(j)
+			start = end
+			end += 1000
+			if not vidList and limit < 1000000:
+				limit += 1000
+			chat.AppendChat(7, 'if not vidList')
+		chat.AppendChat(7, 'saiu do for2')
+		if vidList:
+			common = 0
+			rangeDigitNum = len(str(range))
+			
+			for i in xrange(1, rangeDigitNum):
+				tmp = [x / (10 ** i) for x in vidList]
+				common = max(set(tmp), key=tmp.count)
+			
+			minVid = (common * (10 ** (rangeDigitNum - 1))) - range
+			maxVid = (common * (10 ** (rangeDigitNum - 1))) + range
+			
+			if minVid < range:
+				minVid = 0
+				maxVid = range * 2
+		chat.AppendChat(7, 'saindo do setViD')
+		return minVid, maxVid
+	
+	### Walk to nearest enemey ###
+	vidStart = 0
+	vidEnd = 0
+	scanRangeCounter = 0
+	
+	def walkToEnemy(self,type):
+		enemyList = []
+		nearestEnemey = 0
+		
+		if self.vidEnd == 0 or self.scanRangeCounter > 3:
+			self.scanRangeCounter = 0
+			self.vidStart, self.vidEnd = self.setVidRange(type)
+
+		for i in xrange(self.vidStart, self.vidEnd):
+			for j in type:
+				if chr.GetNameByVID(i).lower() == j.lower():
+					enemyList.append(i)
+		
+		if enemyList:
+			counter = 0
+			enemyDistanceList = [player.GetCharacterDistance(enemy) for enemy in enemyList]
+			chat.AppendChat(7, 'while not isAlive')
+			while counter < len(enemyList) and not self.isAliveFunc(nearestEnemey):
+				chat.AppendChat(7, 'inside isAlive while')
+				nearestEnemey = enemyList[enemyDistanceList.index(sorted(enemyDistanceList)[counter])]
+				counter += 1
+			chat.AppendChat(7, 'while not searching for enemy')
+			if player.GetCharacterDistance(nearestEnemey) > 3500:
+				self.charMoveToPos(nearestEnemey)
+		else:
+			app.RotateCamera(1)
+			self.callFnc(4, app.RotateCamera, 0)
+			self.charMoveRandom()
+			self.scanRangeCounter += 1
+			
+		return nearestEnemey
+
+	# def LocationMonster(self):
+	# 	defaultSize = 2000000 #2KK is the max VID number for monster
+		
 
 
 	def switch_state(self):
@@ -233,13 +419,30 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.Restart_1()
 			self.Skillbot_1()
 			#funcao para receber input do usuario
-			chat.AppendChat(7, 'Breakpoint134')
-			self.ReadMonsters(str(self.MonstersLabel.GetText()))
-			chat.AppendChat(7, 'Breakpoint9')
+			#chat.AppendChat(7, 'Breakpoint134')
+			chat.AppendChat(7, 'Nao leu userMonster')
+			userMonsters = self.ReadMonsters(str(self.MonstersLabel.GetText()))
+			chat.AppendChat(7, 'Leu userMonster=>')
+			#chat.AppendChat(7, 'Breakpoint9')
 			#chat.AppendChat(7, self.MonstersLabel.GetText())
 			#funcao para localizar os mobs e comparar com o input
+			nearestEnemey = self.walkToEnemy(userMonsters)
+			chat.AppendChat(7, 'Leu Walk=>')
+			isAlive = self.isAliveFunc(nearestEnemey)
+			chat.AppendChat(7, 'Leu isAlive=>')
+			isInRange = player.GetCharacterDistance(nearestEnemey) < 300
+			chat.AppendChat(7, 'Leu isInRange=>')
+			tp = (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100)
+			chat.AppendChat(7, 'Leu tpMonster=>')
 			#funcao para ir ate e atacar
-			player.SetAttackKeyState(TRUE)
+			if (isAlive and isInRange) or tp < 90:
+				chat.AppendChat(7, 'Leu if isInRange and isAlive=>')
+				chr.SetRotation(self.getDegree(nearestEnemey))
+				player.SetAttackKeyState(TRUE)
+				chat.AppendChat(7, 'Setou True 666')
+			else:
+				player.SetAttackKeyState(FALSE)
+			#player.SetAttackKeyState(TRUE)
 			#chat.AppendChat(7, 'Setou True')
 			
 

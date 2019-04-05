@@ -94,11 +94,11 @@ class MyFunc:
 		
 		for i in xrange(limit):
 			for j in xrange(start, end):
-				if chr.GetInstanceType(j) == type:
+				if chr.GetNameByVID(j).lower() == 'metin das trevas' or chr.GetNameByVID(j).lower() == 'metin da inveja':
 					vidList.append(j)
 			start = end
 			end += 1000
-			if not vidList and limit < 10000:
+			if not vidList and limit < 2000000:
 				limit += 1000
 		
 		if vidList:
@@ -124,6 +124,7 @@ class MyFunc:
 	scanRangeCounter = 0
 	@staticmethod
 	def walkToEnemy(type):
+		type = "Tanaka O Pirata"
 		enemyList = []
 		nearestEnemey = 0
 		
@@ -132,7 +133,7 @@ class MyFunc:
 			MyFunc.vidStart, MyFunc.vidEnd = MyFunc.setVidRange(type)
 		
 		for i in xrange(MyFunc.vidStart, MyFunc.vidEnd):
-			if chr.GetInstanceType(i) == type:
+			if chr.GetNameByVID(i).lower() == 'metin das trevas' or chr.GetNameByVID(i).lower() == 'metin da inveja':
 				enemyList.append(i)
 		
 		if enemyList:
@@ -322,7 +323,7 @@ class MyFunc:
 	### Debug ###
 	@staticmethod
 	def debug():
-		chat.AppendChat(7, str(player.GetTargetVID()))
+		chat.AppendChat(7, str(chr.GetNameByVID(363966)))
 
 """ Gui wrapper """
 class Gui:
