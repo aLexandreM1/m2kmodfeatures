@@ -444,10 +444,10 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.BuffBotStopButton.Show()	
 			self.BuffBotStartButton.Hide()
 			self.Levelbot_1()
-			self.Pull_1()
 			self.Restart_1()
 			self.Skillbot_1()
 			if self.Rotation:
+				self.Pull_1()
 				player.SetAttackKeyState(TRUE)
 			else:
 				self.AutoAttack()
@@ -800,16 +800,16 @@ class LevelbotDialog(ui.ScriptWindow):
 		
 	def RedPot(self):
 		if (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100) < self.RedPercent:
-			for i in xrange(player.INVENTORY_PAGE_SIZE*3):
+			for i in xrange(player.INVENTORY_PAGE_SIZE*5):
 				RedPott = player.GetItemIndex(i)
-				if RedPott == 27001 or RedPott == 27002 or RedPott == 27003 or self.RedPotID:
+				if RedPott == 27001 or RedPott == 27002 or RedPott == 27003:
 					net.SendItemUsePacket(i)
 					break
 	def BluePot(self):
 		if (float(player.GetStatus(player.SP)) / (float(player.GetStatus(player.MAX_SP))) * 100) < self.BluePercent:
-			for i in xrange(player.INVENTORY_PAGE_SIZE*3):
+			for i in xrange(player.INVENTORY_PAGE_SIZE*5):
 				BluePott = player.GetItemIndex(i)
-				if BluePott == 27004 or BluePott == 27005 or BluePott == 27006 or self.BluePotID:
+				if BluePott == 27004 or BluePott == 27005 or BluePott == 27006:
 					net.SendItemUsePacket(i)
 					break
 
