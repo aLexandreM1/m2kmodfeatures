@@ -1,6 +1,6 @@
 import ui,app,chat,chr,net,player,item,skill,time,game,shop,chrmgr
 import background,constInfo,miniMap,uiminimap,wndMgr,math,uiCommon,grp
-import event,game,os
+import event,game,os,sched
 from m2kmod.Modules import m2k_lib
 
 """ Call function with agrs and delay """
@@ -10,7 +10,7 @@ class CallFnc:
 		self.event = fnc
 		self.eventArgs = args
 		self.state = False
-		self.timer = WaitingDialog()
+		self.timer = m2k_lib.WaitingDialog()
 		self.timer.Open(time)
 		self.timer.SAFE_SetTimeOverEvent(self.startEvent)
 	
@@ -36,7 +36,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	RestartPot = 0
 	SkillCount = 0
 	SkillIndex = 0
-	
+
 	def __init__(self):
 		self.Board = ui.ThinBoard() 
 		self.Board.SetPosition(52, 40)
@@ -141,7 +141,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	
 	def callFnc(self,delay, fnc, *args):
 		self.callFncList = [x for x in self.callFncList if not x.state]
-		self.callFncList.append(self.CallFnc(delay, fnc, *args))
+		self.callFncList.append(CallFnc(delay, fnc, *args))
 
 	### Char move to position ###
 	charIsMoving = [False]
@@ -149,7 +149,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	
 	def charMoveToPos(self,vid):
 		chat.AppendChat(7, "charMoveToPos Call")
-		if player.GetCharacterDistance(vid) > 4000:
+		if player.GetCharacterDistance(vid) > 2000:
 			self.getStuckedCounter += 1
 		
 		if not self.charIsMoving[0] and self.getStuckedCounter > 3:
@@ -284,7 +284,7 @@ class LevelbotDialog(ui.ScriptWindow):
 				nearestEnemey = enemyList[enemyDistanceList.index(sorted(enemyDistanceList)[counter])]
 				counter += 1
 			chat.AppendChat(7, 'while not searching for enemy')
-			if player.GetCharacterDistance(nearestEnemey) > 3500:
+			if player.GetCharacterDistance(nearestEnemey) > 200:
 				self.charMoveToPos(nearestEnemey)
 		else:
 			app.RotateCamera(1)
@@ -391,6 +391,35 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.AutoPotOn.Show()
 			self.AutoPotOff.Hide()
 			
+	def AutoAttack(self):
+		if self.Levelbot == 1:
+			chat.AppendChat(7, 'Nao leu userMonster')
+			userMonsters = self.ReadMonsters(str(self.MonstersLabel.GetText()))
+			chat.AppendChat(7, 'Leu userMonster=>')
+			nearestEnemey = self.walkToEnemy(userMonsters)
+			chr.SetRotation(self.getDegree(nearestEnemey))
+			chat.AppendChat(7, 'Leu Walk=>')
+			isAlive = self.isAliveFunc(nearestEnemey)
+			chat.AppendChat(7, 'Leu isAlive=>')
+			isInRange = player.GetCharacterDistance(nearestEnemey) < 300
+			chat.AppendChat(7, 'Leu isInRange=>')
+			tp = (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100)
+			chat.AppendChat(7, 'Leu tpMonster=>')
+			if (isAlive and isInRange) or tp < 90:
+				chat.AppendChat(7, 'Leu if isInRange and isAlive=>')
+				chr.SetRotation(self.getDegree(nearestEnemey))
+				player.SetAttackKeyState(TRUE)
+				chat.AppendChat(7, 'Setou True 666')
+			else:
+				player.SetAttackKeyState(FALSE)
+			self.UpdateAttack = m2k_lib.WaitingDialog()			
+			self.UpdateAttack.Open(1.0)
+			self.UpdateAttack.SAFE_SetTimeOverEvent(self.AutoAttack)
+		else:
+			self.UpdateAttack = m2k_lib.WaitingDialog()
+			self.UpdateAttack.Close()	
+
+
 	def CheckLevelbot(self):
 		if self.Levelbot:
 			self.Levelbot = 0	
@@ -418,32 +447,20 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.Pull_1()
 			self.Restart_1()
 			self.Skillbot_1()
+			if self.Rotation:
+				player.SetAttackKeyState(TRUE)
+			else:
+				self.AutoAttack()
+			
+			# chat.AppendChat(7, "Before")
+			# self.s.enter(1,1, self.AutoAttack, (self.s,))
+			# chat.AppendChat(7, "Between")
+			# self.s.run()
+			# chat.AppendChat(7, "After")
 			#funcao para receber input do usuario
 			#chat.AppendChat(7, 'Breakpoint134')
-			chat.AppendChat(7, 'Nao leu userMonster')
-			userMonsters = self.ReadMonsters(str(self.MonstersLabel.GetText()))
-			chat.AppendChat(7, 'Leu userMonster=>')
-			#chat.AppendChat(7, 'Breakpoint9')
-			#chat.AppendChat(7, self.MonstersLabel.GetText())
-			#funcao para localizar os mobs e comparar com o input
-			nearestEnemey = self.walkToEnemy(userMonsters)
-			chat.AppendChat(7, 'Leu Walk=>')
-			isAlive = self.isAliveFunc(nearestEnemey)
-			chat.AppendChat(7, 'Leu isAlive=>')
-			isInRange = player.GetCharacterDistance(nearestEnemey) < 300
-			chat.AppendChat(7, 'Leu isInRange=>')
-			tp = (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100)
-			chat.AppendChat(7, 'Leu tpMonster=>')
-			#funcao para ir ate e atacar
-			if (isAlive and isInRange) or tp < 90:
-				chat.AppendChat(7, 'Leu if isInRange and isAlive=>')
-				chr.SetRotation(self.getDegree(nearestEnemey))
-				player.SetAttackKeyState(TRUE)
-				chat.AppendChat(7, 'Setou True 666')
-			else:
-				player.SetAttackKeyState(FALSE)
-			#player.SetAttackKeyState(TRUE)
-			#chat.AppendChat(7, 'Setou True')
+			
+			#chat.AppendChat(7, 'Attack Done.')
 			
 
 	def SlideRed(self):

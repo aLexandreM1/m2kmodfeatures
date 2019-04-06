@@ -241,6 +241,7 @@ class MyFunc:
 	### AutoAttack ###
 	@staticmethod
 	def autoAttack(type):
+		chat.AppendChat(7, "Starting Attack")
 		nearestEnemey = MyFunc.walkToEnemy(type)
 		isAlive = MyFunc.isAlive(nearestEnemey)
 		isInRange = player.GetCharacterDistance(nearestEnemey) < 300
@@ -323,7 +324,10 @@ class MyFunc:
 	### Debug ###
 	@staticmethod
 	def debug():
-		chat.AppendChat(7, str(chr.GetNameByVID(363966)))
+		chat.AppendChat(7, "Entrou")
+		chat.AppendChat(7, str(player.GetTargetVID()))
+		MyFunc.charMoveToPos(600590)
+		chat.AppendChat(7, "Saiu")
 
 """ Gui wrapper """
 class Gui:
