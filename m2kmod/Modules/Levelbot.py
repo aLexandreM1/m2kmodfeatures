@@ -36,6 +36,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	RestartPot = 0
 	SkillCount = 0
 	SkillIndex = 0
+	nearestEnemey = []
 
 	def __init__(self):
 		self.Board = ui.ThinBoard() 
@@ -390,18 +391,54 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.AutoPotion = 1
 			self.AutoPotOn.Show()
 			self.AutoPotOff.Hide()
-			
+	
+	# def TeleportToMonster(self,monsterVID):
+	# 	chat.AppendChat(7, "Enter TeleportFunction")
+	# 	(x, y, z) = player.GetMainCharacterPosition()
+	# 	chat.AppendChat(7, "Read PlayerPos")
+	# 	monsterPosition = chr.GetPixelPosition(monsterVID)
+	# 	chat.AppendChat(7, "Read MonsterPos")
+	# 	trueX = monsterPosition[0]
+	# 	trueY = monsterPosition[1]
+	# 	chr.SetPixelPosition(int(trueX), int(trueY), int(z))
+	# 	chat.AppendChat(7, "Changed PlayerPos")
+	# 	player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
+	# 	player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
+	# 	chat.AppendChat(7, "Leaving TeleportToMonster")
+
+
 	def AutoAttack(self):
 		if self.Levelbot == 1:
 			chat.AppendChat(7, 'Nao leu userMonster')
 			userMonsters = self.ReadMonsters(str(self.MonstersLabel.GetText()))
+			userMonsters = [x.lower() for x in userMonsters]
 			chat.AppendChat(7, 'Leu userMonster=>')
 			nearestEnemey = self.walkToEnemy(userMonsters)
 			chr.SetRotation(self.getDegree(nearestEnemey))
 			chat.AppendChat(7, 'Leu Walk=>')
 			isAlive = self.isAliveFunc(nearestEnemey)
 			chat.AppendChat(7, 'Leu isAlive=>')
-			isInRange = player.GetCharacterDistance(nearestEnemey) < 300
+			if "tanaka o pirata" in userMonsters:
+				isInRange = player.GetCharacterDistance(nearestEnemey) < 3500
+			elif "teleport" in userMonsters:
+				isInRange = player.GetCharacterDistance(nearestEnemey) < 300
+				if player.GetCharacterDistance(nearestEnemey) > 2000:
+					#chat.AppendChat(7, 'Compare DistancePlayer vs Monster to Teleport=>')
+					#chat.AppendChat(7, "Enter TeleportFunction")
+					(x, y, z) = player.GetMainCharacterPosition()
+					#chat.AppendChat(7, "Read PlayerPos")
+					monsterPosition = chr.GetPixelPosition(nearestEnemey)
+					#chat.AppendChat(7, "Read MonsterPos")
+					trueX = monsterPosition[0]
+					trueY = monsterPosition[1]
+					chr.SetPixelPosition(int(trueX), int(trueY), int(z))
+					#chat.AppendChat(7, "Changed PlayerPos")
+					player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
+					player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
+					#chat.AppendChat(7, "Leaving TeleportToMonster")
+					self.charMoveToPos(nearestEnemey)
+			else:
+				isInRange = player.GetCharacterDistance(nearestEnemey) < 300
 			chat.AppendChat(7, 'Leu isInRange=>')
 			tp = (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100)
 			chat.AppendChat(7, 'Leu tpMonster=>')

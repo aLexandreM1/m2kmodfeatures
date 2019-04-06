@@ -1,4 +1,4 @@
-import app,item,chr,net,player,time,ui,os,math,chat
+import app,item,chr,net,player,time,ui,os,math,chat,chrmgr
 
 ### Modules substitute ###
 """ Function list """
@@ -321,12 +321,36 @@ class MyFunc:
 			net.SendItemUsePacket(0)
 			MyFunc.horseCount = 0
 
+	### Teleport ###
+	@staticmethod
+	def TeleportToMonster(monsterVID):
+		chat.AppendChat(7, "Enter TeleportFunction")
+		(x, y, z) = player.GetMainCharacterPosition()
+		chat.AppendChat(7, "Read PlayerPos")
+		monsterPosition = chr.GetPixelPosition(monsterVID)
+		chat.AppendChat(7, "Read MonsterPos")
+		trueX = monsterPosition[0]
+		trueY = monsterPosition[1]
+		chr.SetPixelPosition(int(trueX), int(trueY), int(z))
+		chat.AppendChat(7, "Changed PlayerPos")
+		player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
+		player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
+		chat.AppendChat(7, "Leaving TeleportToMonster")
+
+
 	### Debug ###
 	@staticmethod
 	def debug():
 		chat.AppendChat(7, "Entrou")
 		chat.AppendChat(7, str(player.GetTargetVID()))
-		MyFunc.charMoveToPos(600590)
+		monsterPosition = player.GetTargetVID()
+		chat.AppendChat(7, str("monster position: "))
+		chat.AppendChat(7, str(monsterPosition))
+		chat.AppendChat(7, str("player position: "))
+		MyFunc.TeleportToMonster(monsterPosition)
+		chat.AppendChat(7, str(player.GetMainCharacterPosition()))
+		chat.AppendChat(7, str("Pixel Position: "))
+		chat.AppendChat(7, str(chr.GetPixelPosition(player.GetTargetVID())))
 		chat.AppendChat(7, "Saiu")
 
 """ Gui wrapper """
