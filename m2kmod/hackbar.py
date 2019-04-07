@@ -54,8 +54,8 @@ class M2kHackbarDialog(ui.ScriptWindow):
 		self.SpamTextButton = self.comp.HideButton(None, '', 'Spam-Text', wndMgr.GetScreenWidth()-115, 480, lambda : self.SpamText(), 'm2kmod/Images/Hackbar/spam_0.tga', 'm2kmod/Images/Hackbar/spam_1.tga', 'm2kmod/Images/Hackbar/spam_0.tga')
 		
 		self.GoForward = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-230, -2, lambda : self.TeleportInDirection(1), 'm2kmod/Images/Shortcuts/Arrow/tele_up_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_up_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_up_0.tga')
-		self.GoRight = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-229, 92, lambda : self.TeleportInDirection(2), 'm2kmod/Images/Shortcuts/Arrow/tele_down_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_down_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_down_0.tga')
-		self.GoBack = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-196, 58, lambda : self.TeleportInDirection(3), 'm2kmod/Images/Shortcuts/Arrow/tele_right_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_right_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_right_0.tga')
+		self.GoRight = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-229, 92, lambda : self.TeleportInDirection(3), 'm2kmod/Images/Shortcuts/Arrow/tele_down_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_down_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_down_0.tga')
+		self.GoBack = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-196, 58, lambda : self.TeleportInDirection(2), 'm2kmod/Images/Shortcuts/Arrow/tele_right_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_right_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_right_0.tga')
 		self.GoLeft = self.comp.HideButton(None, '', '', wndMgr.GetScreenWidth()-290, 59, lambda : self.TeleportInDirection(4), 'm2kmod/Images/Shortcuts/Arrow/tele_left_0.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_left_1.tga', 'm2kmod/Images/Shortcuts/Arrow/tele_left_0.tga')
 		
 		self.SettingsButton = self.comp.Button(self.m2kBoard, '', 'Settings', 9, 10, self.Generel, 'm2kmod/Images/Hackbar/sett_0.tga', 'm2kmod/Images/Hackbar/sett_1.tga', 'm2kmod/Images/Hackbar/sett_2.tga')

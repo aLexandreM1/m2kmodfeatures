@@ -38,6 +38,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	SkillIndex = 0
 	nearestEnemey = []
 
+
 	def __init__(self):
 		self.Board = ui.ThinBoard() 
 		self.Board.SetPosition(52, 40)
@@ -131,10 +132,7 @@ class LevelbotDialog(ui.ScriptWindow):
 	
 		#---New Functions---#
 	def ReadMonsters(self,monstersArrayM):
-		chat.AppendChat(7, monstersArrayM)
 		monstersArray = str(monstersArrayM).split(';')
-		# for monster in monstersArray:
-		# 	chat.AppendChat(7, monster)
 		return monstersArray
 
 	### Call function with delay and args ###
@@ -149,7 +147,6 @@ class LevelbotDialog(ui.ScriptWindow):
 	getStuckedCounter = 0
 	
 	def charMoveToPos(self,vid):
-		chat.AppendChat(7, "charMoveToPos Call")
 		if player.GetCharacterDistance(vid) > 2000:
 			self.getStuckedCounter += 1
 		
@@ -176,7 +173,6 @@ class LevelbotDialog(ui.ScriptWindow):
 	### Char move random direction ###
 	
 	def charMoveRandom(self):
-		chat.AppendChat(7, "charMoveRandom Call")
 		x, y = (0, 0)
 		myX, myY = player.GetMainCharacterPosition()[:2]
 		
@@ -199,7 +195,6 @@ class LevelbotDialog(ui.ScriptWindow):
 	### Get degree in between char and target ###
 	
 	def getDegree(self,vid):
-		chat.AppendChat(7, "getDegree call")
 		mobX, mobY = chr.GetPixelPosition(vid)[:2]
 		playerX, playerY = player.GetMainCharacterPosition()[:2]
 		try:
@@ -213,7 +208,6 @@ class LevelbotDialog(ui.ScriptWindow):
 	### Check if target is alive ###
 	
 	def isAliveFunc(self,vid):
-		chat.AppendChat(7, "isAlive Call")
 		player.SetTarget(vid)
 		if player.GetTargetVID() != 0:
 			return True
@@ -221,9 +215,8 @@ class LevelbotDialog(ui.ScriptWindow):
 	### Find the vid range with the most enemys ###
 	
 	def setVidRange(self,type):
-		chat.AppendChat(7, 'entrou no setVIDrange')
-		start = 0
-		end = 1000
+		start = 1000000
+		end = 1001000
 		limit = 1000
 		range = 50000
 		minVid = 0
@@ -237,10 +230,8 @@ class LevelbotDialog(ui.ScriptWindow):
 						vidList.append(j)
 			start = end
 			end += 1000
-			if not vidList and limit < 1000000:
+			if not vidList and limit < 2000000:
 				limit += 1000
-			chat.AppendChat(7, 'if not vidList')
-		chat.AppendChat(7, 'saiu do for2')
 		if vidList:
 			common = 0
 			rangeDigitNum = len(str(range))
@@ -255,7 +246,7 @@ class LevelbotDialog(ui.ScriptWindow):
 			if minVid < range:
 				minVid = 0
 				maxVid = range * 2
-		chat.AppendChat(7, 'saindo do setViD')
+
 		return minVid, maxVid
 	
 	### Walk to nearest enemey ###
@@ -264,27 +255,25 @@ class LevelbotDialog(ui.ScriptWindow):
 	scanRangeCounter = 0
 	
 	def walkToEnemy(self,type):
+		chat.AppendChat(7,'In Walk')
 		enemyList = []
 		nearestEnemey = 0
-		
+
 		if self.vidEnd == 0 or self.scanRangeCounter > 3:
 			self.scanRangeCounter = 0
 			self.vidStart, self.vidEnd = self.setVidRange(type)
-
+		
 		for i in xrange(self.vidStart, self.vidEnd):
 			for j in type:
 				if chr.GetNameByVID(i).lower() == j.lower():
 					enemyList.append(i)
-		
+
 		if enemyList:
 			counter = 0
 			enemyDistanceList = [player.GetCharacterDistance(enemy) for enemy in enemyList]
-			chat.AppendChat(7, 'while not isAlive')
 			while counter < len(enemyList) and not self.isAliveFunc(nearestEnemey):
-				chat.AppendChat(7, 'inside isAlive while')
 				nearestEnemey = enemyList[enemyDistanceList.index(sorted(enemyDistanceList)[counter])]
 				counter += 1
-			chat.AppendChat(7, 'while not searching for enemy')
 			if player.GetCharacterDistance(nearestEnemey) > 200:
 				self.charMoveToPos(nearestEnemey)
 		else:
@@ -392,66 +381,44 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.AutoPotOn.Show()
 			self.AutoPotOff.Hide()
 	
-	# def TeleportToMonster(self,monsterVID):
-	# 	chat.AppendChat(7, "Enter TeleportFunction")
-	# 	(x, y, z) = player.GetMainCharacterPosition()
-	# 	chat.AppendChat(7, "Read PlayerPos")
-	# 	monsterPosition = chr.GetPixelPosition(monsterVID)
-	# 	chat.AppendChat(7, "Read MonsterPos")
-	# 	trueX = monsterPosition[0]
-	# 	trueY = monsterPosition[1]
-	# 	chr.SetPixelPosition(int(trueX), int(trueY), int(z))
-	# 	chat.AppendChat(7, "Changed PlayerPos")
-	# 	player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
-	# 	player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
-	# 	chat.AppendChat(7, "Leaving TeleportToMonster")
+	def TeleportToMonster(self,monsterVID):
+		if player.GetCharacterDistance(monsterVID) > 1500 and player.GetCharacterDistance(monsterVID) < 6500:
+			(x, y, z) = player.GetMainCharacterPosition()
+			monsterPosition = chr.GetPixelPosition(monsterVID)
+			trueX = monsterPosition[0]-200
+			trueY = monsterPosition[1]-200
+			chr.SetPixelPosition(int(trueX), int(trueY), int(z))
+			player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
+			player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
+			self.charMoveToPos(monsterVID)
 
 
 	def AutoAttack(self):
 		if self.Levelbot == 1:
-			chat.AppendChat(7, 'Nao leu userMonster')
 			userMonsters = self.ReadMonsters(str(self.MonstersLabel.GetText()))
 			userMonsters = [x.lower() for x in userMonsters]
-			chat.AppendChat(7, 'Leu userMonster=>')
 			nearestEnemey = self.walkToEnemy(userMonsters)
 			chr.SetRotation(self.getDegree(nearestEnemey))
-			chat.AppendChat(7, 'Leu Walk=>')
 			isAlive = self.isAliveFunc(nearestEnemey)
-			chat.AppendChat(7, 'Leu isAlive=>')
 			if "tanaka o pirata" in userMonsters:
 				isInRange = player.GetCharacterDistance(nearestEnemey) < 3500
 			elif "teleport" in userMonsters:
-				isInRange = player.GetCharacterDistance(nearestEnemey) < 300
-				if player.GetCharacterDistance(nearestEnemey) > 2000:
-					#chat.AppendChat(7, 'Compare DistancePlayer vs Monster to Teleport=>')
-					#chat.AppendChat(7, "Enter TeleportFunction")
-					(x, y, z) = player.GetMainCharacterPosition()
-					#chat.AppendChat(7, "Read PlayerPos")
-					monsterPosition = chr.GetPixelPosition(nearestEnemey)
-					#chat.AppendChat(7, "Read MonsterPos")
-					trueX = monsterPosition[0]
-					trueY = monsterPosition[1]
-					chr.SetPixelPosition(int(trueX), int(trueY), int(z))
-					#chat.AppendChat(7, "Changed PlayerPos")
-					player.SetSingleDIKKeyState(app.DIK_UP, TRUE)
-					player.SetSingleDIKKeyState(app.DIK_UP, FALSE)
-					#chat.AppendChat(7, "Leaving TeleportToMonster")
-					self.charMoveToPos(nearestEnemey)
+				isInRange = player.GetCharacterDistance(nearestEnemey) < 200
+				self.TeleportToMonster(nearestEnemey)
 			else:
 				isInRange = player.GetCharacterDistance(nearestEnemey) < 300
-			chat.AppendChat(7, 'Leu isInRange=>')
 			tp = (float(player.GetStatus(player.HP)) / (float(player.GetStatus(player.MAX_HP))) * 100)
-			chat.AppendChat(7, 'Leu tpMonster=>')
 			if (isAlive and isInRange) or tp < 90:
-				chat.AppendChat(7, 'Leu if isInRange and isAlive=>')
 				chr.SetRotation(self.getDegree(nearestEnemey))
 				player.SetAttackKeyState(TRUE)
-				chat.AppendChat(7, 'Setou True 666')
 			else:
 				player.SetAttackKeyState(FALSE)
 			self.UpdateAttack = m2k_lib.WaitingDialog()			
-			self.UpdateAttack.Open(1.0)
+			self.UpdateAttack.Open(0.50)
 			self.UpdateAttack.SAFE_SetTimeOverEvent(self.AutoAttack)
+			self.UpdateHorse = m2k_lib.WaitingDialog()
+			self.UpdateHorse.Open(10)
+			self.UpdateHorse.SAFE_SetTimeOverEvent(self.CheckMountAndGo)
 		else:
 			self.UpdateAttack = m2k_lib.WaitingDialog()
 			self.UpdateAttack.Close()	
@@ -464,19 +431,16 @@ class LevelbotDialog(ui.ScriptWindow):
 			self.BuffBotStopButton.Hide()	
 			self.BuffBotStartButton.Show()	
 			if self.Horse == 1:
-				#chat.AppendChat(7, 'Horse == 1[1]')
 				self.UnHookQuestWindow()
 			self.Levelbot_0()
 			self.Pull_0()
 			self.Restart_0()
 			self.Skillbot_0()
 			player.SetAttackKeyState(FALSE)
-			#chat.AppendChat(7, 'Setou False')
 		else:	
 			self.Levelbot = 1
 			self.State = 1
 			if self.Horse == 1:
-				#chat.AppendChat(7, 'Horse == 1[2]')
 				self.InstallQuestWindowHook()
 			self.BuffBotStopButton.Show()	
 			self.BuffBotStartButton.Hide()
@@ -488,17 +452,7 @@ class LevelbotDialog(ui.ScriptWindow):
 				player.SetAttackKeyState(TRUE)
 			else:
 				self.AutoAttack()
-			
-			# chat.AppendChat(7, "Before")
-			# self.s.enter(1,1, self.AutoAttack, (self.s,))
-			# chat.AppendChat(7, "Between")
-			# self.s.run()
-			# chat.AppendChat(7, "After")
-			#funcao para receber input do usuario
-			#chat.AppendChat(7, 'Breakpoint134')
-			
-			#chat.AppendChat(7, 'Attack Done.')
-			
+						
 
 	def SlideRed(self):
 		self.RedPercent = int(self.SlidbarRed.GetSliderPos()*100)

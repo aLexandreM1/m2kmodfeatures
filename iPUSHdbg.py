@@ -347,7 +347,7 @@ class MyFunc:
 		chat.AppendChat(7, str("monster position: "))
 		chat.AppendChat(7, str(monsterPosition))
 		chat.AppendChat(7, str("player position: "))
-		MyFunc.TeleportToMonster(monsterPosition)
+		#MyFunc.TeleportToMonster(monsterPosition)
 		chat.AppendChat(7, str(player.GetMainCharacterPosition()))
 		chat.AppendChat(7, str("Pixel Position: "))
 		chat.AppendChat(7, str(chr.GetPixelPosition(player.GetTargetVID())))
