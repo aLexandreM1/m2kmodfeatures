@@ -37,6 +37,8 @@ class LevelbotDialog(ui.ScriptWindow):
 	SkillCount = 0
 	SkillIndex = 0
 	nearestEnemey = []
+	randomMove = False
+	myWay = 1
 
 
 	def __init__(self):
@@ -52,7 +54,8 @@ class LevelbotDialog(ui.ScriptWindow):
 		self.RedLabel = self.comp.TextLine(self.Board, '90 %', 250, 38, self.comp.RGB(255, 255, 255))
 		self.BlueLabel = self.comp.TextLine(self.Board, '30 %', 250, 78, self.comp.RGB(255, 255, 255))
 		self.TapfiLabel = self.comp.TextLine(self.Board, '20 Sec.', 250, 118, self.comp.RGB(255, 255, 255))
-		self.MonsterButton, self.MonstersLabel = self.comp.EditLine(self.Board, 'Monster;Hue;Game;Haha', 15, 240, 250,15,100)
+		self.MonsterButton, self.MonstersLabel = self.comp.EditLine(self.Board, 'monster;name;separate;by;', 15, 240, 250,15,100)
+		self.MonsterCountButton, self.MonstersCountLabel = self.comp.EditLine(self.Board, 'number to find VID in server', 15, 260, 20,15,1)
 
 		self.CloseButton = self.comp.Button(self.Board, '', 'Close', 270, 8, self.Hide_UI, 'd:/ymir work/ui/public/close_button_01.sub', 'd:/ymir work/ui/public/close_button_02.sub', 'd:/ymir work/ui/public/close_button_03.sub')
 		self.ImageRed = self.comp.ExpandedImage(self.Board, 19, 30, str("icon/item/27003.tga"))
@@ -153,7 +156,7 @@ class LevelbotDialog(ui.ScriptWindow):
 		if not self.charIsMoving[0] and self.getStuckedCounter > 3:
 			self.charIsMoving[0] = True
 			self.getStuckedCounter = 0
-			self.charMoveRandom()
+			self.charMoveRandomMy()
 			self.callFnc(2, lambda : self.charIsMoving.__setitem__(0,False))
 		else:
 			x, y = chr.GetPixelPosition(vid)[:2]
@@ -170,8 +173,69 @@ class LevelbotDialog(ui.ScriptWindow):
 		
 			chr.MoveToDestPosition(player.GetMainCharacterIndex(), x, y)
 		
+	def setMovingFalse(self):
+		self.randomMove = False
+
 	### Char move random direction ###
-	
+	def charMoveRandomMy(self):
+		x, y = (0, 0)
+		myX, myY = player.GetMainCharacterPosition()[:2]
+		
+		
+		if not self.randomMove:
+			if self.myWay == 1:
+				x = myX
+				y = myY - 1000
+				self.myWay += 1
+				chat.AppendChat(7, '-y')
+			elif self.myWay == 2:
+				x = myX - 1000
+				y = myY
+				self.myWay += 1
+				chat.AppendChat(7, '-x')
+			elif self.myWay == 3:
+				x = myX
+				y = myY + 1000
+				self.myWay += 1
+				chat.AppendChat(7, '+y')
+			elif self.myWay == 4:
+				x = myX + 1000
+				y = myY
+				self.myWay += 1
+				chat.AppendChat(7, '+x')
+			elif self.myWay == 5:
+				x = myX + 1000
+				y = myY
+				self.myWay += 1
+				chat.AppendChat(7, '+x')
+			elif self.myWay == 6:
+				x = myX
+				y = myY + 1000
+				self.myWay += 1
+				chat.AppendChat(7, '+y')
+			elif self.myWay == 7:
+				x = myX
+				y = myY - 1000
+				self.myWay += 1
+				chat.AppendChat(7, '-y')
+			elif self.myWay == 8:
+				x = myX - 1000
+				y = myY
+				self.myWay += 1
+				chat.AppendChat(7, '-x')
+			elif self.myWay == 9:
+				self.myWay = 1
+				chat.AppendChat(7, 'set default value')
+		chat.AppendChat(7, 'variable value in seconds')
+		# self.MovingRandom = m2k_lib.WaitingDialog()
+		# self.MovingRandom.Open(3)
+		# self.MovingRandom.SAFE_SetTimeOverEvent(self.setMovingFalse)
+		self.callFnc(3, self.setMovingFalse)
+		chat.AppendChat(7, 'variable value after line')
+		self.randomMove = True
+		chr.MoveToDestPosition(player.GetMainCharacterIndex(), x, y)
+
+
 	def charMoveRandom(self):
 		x, y = (0, 0)
 		myX, myY = player.GetMainCharacterPosition()[:2]
@@ -215,8 +279,8 @@ class LevelbotDialog(ui.ScriptWindow):
 	### Find the vid range with the most enemys ###
 	
 	def setVidRange(self,type):
-		start = 1000000
-		end = 1001000
+		start = (int(self.MonstersCountLabel.GetText()) * 1000000) + 0
+		end = (int(self.MonstersCountLabel.GetText()) * 1000000) + 1000
 		limit = 1000
 		range = 50000
 		minVid = 0
@@ -230,7 +294,7 @@ class LevelbotDialog(ui.ScriptWindow):
 						vidList.append(j)
 			start = end
 			end += 1000
-			if not vidList and limit < 2000000:
+			if not vidList and limit < (int(self.MonstersCountLabel.GetText()) * 1000000) +1000000:
 				limit += 1000
 		if vidList:
 			common = 0
@@ -255,7 +319,6 @@ class LevelbotDialog(ui.ScriptWindow):
 	scanRangeCounter = 0
 	
 	def walkToEnemy(self,type):
-		chat.AppendChat(7,'In Walk')
 		enemyList = []
 		nearestEnemey = 0
 
@@ -279,7 +342,7 @@ class LevelbotDialog(ui.ScriptWindow):
 		else:
 			app.RotateCamera(1)
 			self.callFnc(4, app.RotateCamera, 0)
-			self.charMoveRandom()
+			self.charMoveRandomMy()
 			self.scanRangeCounter += 1
 			
 		return nearestEnemey
@@ -414,14 +477,19 @@ class LevelbotDialog(ui.ScriptWindow):
 			else:
 				player.SetAttackKeyState(FALSE)
 			self.UpdateAttack = m2k_lib.WaitingDialog()			
-			self.UpdateAttack.Open(0.50)
+			self.UpdateAttack.Open(2.0)
 			self.UpdateAttack.SAFE_SetTimeOverEvent(self.AutoAttack)
-			self.UpdateHorse = m2k_lib.WaitingDialog()
-			self.UpdateHorse.Open(10)
-			self.UpdateHorse.SAFE_SetTimeOverEvent(self.CheckMountAndGo)
+			app.RotateCamera(0)
+			self.callFnc(1, app.RotateCamera, 1)
+			# self.RotateCamera = m2k_lib.WaitingDialog()
+			# self.RotateCamera.Open(1)
+			# self.RotateCamera.SAFE_SetTimeOverEvent(app.RotateCamera(1))
+			self.CheckMountAndMount()
 		else:
 			self.UpdateAttack = m2k_lib.WaitingDialog()
-			self.UpdateAttack.Close()	
+			self.UpdateAttack.Close()
+			self.RotateCamera = m2k_lib.WaitingDialog()
+			self.RotateCamera.Close()
 
 
 	def CheckLevelbot(self):
@@ -810,6 +878,9 @@ class LevelbotDialog(ui.ScriptWindow):
 		net.SendChatPacket("/user_horse_ride")
 	def MountOnly(self):
 		net.SendChatPacket("/user_horse_ride")
+	def CheckMountAndMount(self):
+		if not player.IsMountingHorse():
+			net.SendChatPacket("/user_horse_ride")
 	def SkillWait(self):
 		player.ClickSkillSlot(self.SkillIndex)
 		self.SkillIndex = 0
